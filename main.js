@@ -4,8 +4,7 @@ class Tarea {
         this.fueCompletada = false;
         this.fechaCreacion = new Date(Date.now());
         this.fechaCompletada = undefined;
-        this.id = undefined;
-      }
+    }
 }
 
 const tareas = []
@@ -21,60 +20,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function agregarTarea() {
     const nuevaTarea = new Tarea(textBox.value.trim());
-    const nuevaTareaHTML = document.createElement('li');
-    nuevaTarea.id = nuevaTareaHTML;
-    nuevaTareaHTML.textContent = nuevaTarea.nombre;
-    listaTareas.appendChild(nuevaTareaHTML);
-    const btnBorrar = document.createElement('button')
-    btnBorrar.textContent = 'Borrar'
-    btnBorrar.addEventListener('click', borrarTarea)
-    listaTareas.appendChild(btnBorrar)
     tareas.push(nuevaTarea);
     reiniciarLista();
 }
 
 function reiniciarLista() {
+    textBox.value = '';
     listaTareas.innerHTML= '';
-    for (var tarea of tareas) {
+    tareas.forEach((tarea, index) => {
         const nuevaTareaHTML = document.createElement('li');
-        tarea.id = nuevaTareaHTML;
-        console.log(tarea)
         if (tarea.fueCompletada) {
             nuevaTareaHTML.classList.add('completada');
         }
         nuevaTareaHTML.textContent = tarea.nombre;
         listaTareas.appendChild(nuevaTareaHTML);
-        nuevaTareaHTML.addEventListener('click', completarTarea)
-    }
+        nuevaTareaHTML.addEventListener('click', () => completarTarea(index))
+        const btnBorrar = document.createElement('button')
+        btnBorrar.classList.add('btnBorrar')
+        btnBorrar.textContent = 'Borrar'
+        btnBorrar.addEventListener('click', () => borrarTarea(index))
+        listaTareas.appendChild(btnBorrar)
+    });
 }
 
-function completarTarea(event) {
-    const tarea = event.target
-    tarea.classList.toggle('completada')
-    let indexTarea = tareas.findIndex(tarea => tarea.id === event.target)
-
-    if (tareas[indexTarea].fueCompletada) {
-        tareas[indexTarea].fueCompletada = false;
-        tareas[indexTarea].fechaCompletada = undefined;
-        
+function completarTarea(index) {
+    const tarea = tareas[index];
+    tarea.fueCompletada = !tarea.fueCompletada;
+    if (tarea.fueCompletada) {
+        tarea.fechaCompletada = new Date(Date.now());
+    } else {
+        tarea.fechaCompletada = undefined;
     }
-    else {
-        tareas[indexTarea].fueCompletada = true;
-        tareas[indexTarea].fechaCompletada = new Date(Date.now());
-    }
+    reiniciarLista();
 }
 
 function calcularRapidez() {
     let tareasCompletadas = tareas.filter(tarea => tarea.fueCompletada);
-    let diferencias = [];
-    for (tarea of tareasCompletadas) {
-        diferencias.push(tarea.fechaCompletada - tarea.fechaCreacion);
+    if (tareasCompletadas.length === 0) {
+        alert('No hay tareas completadas')
+        return;
     }
-    let valorMinimo = Math.min(...diferencias);
-    let index = tareas.findIndex(tarea => valorMinimo === tarea.fechaCompletada - tarea.fechaCreacion)
-    alert(`La tarea más rapida en completarse fue ${tareas[index].nombre}`)
+    let tareaMasRapida = tareasCompletadas.reduce((anterior, actual) => {
+        return (anterior.fechaCompletada - anterior.fechaCreacion < actual.fechaCompletada - actual.fechaCreacion) ? anterior : actual
+    });
+    alert(`La tarea más rapida en completarse fue ${tareaMasRapida.nombre}`)
 }
 
-function borrarTarea() {
-    
+function borrarTarea(index) {
+    tareas.splice(index, 1)
+    reiniciarLista();
 }
